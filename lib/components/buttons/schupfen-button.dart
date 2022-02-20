@@ -8,9 +8,9 @@ class SchupfenButton extends Button {
 
    @override
    bool onTapDown(_) {
-      if (isVisible && this.hasGameRef) {
+      if (isVisible) {
          gameRef.cardsSchupfen();
-         this.remove();
+         parent?.remove(this);
       }
       return true;
    }

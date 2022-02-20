@@ -1,6 +1,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:tichu/models/card-model.dart';
+import 'package:tichu/models/card_model.dart';
 
 
 // use 'flutter pub run build_runner build' to re-generate

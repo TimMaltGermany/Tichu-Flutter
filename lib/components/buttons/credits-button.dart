@@ -4,7 +4,7 @@ import 'package:flame/sprite.dart';
 import 'package:tichu/tichu-game.dart';
 import 'package:tichu/view.dart';
 
-class CreditsButton extends BaseComponent {
+class CreditsButton extends Component {
   final TichuGame game;
   late Rect rect;
   late Sprite sprite;

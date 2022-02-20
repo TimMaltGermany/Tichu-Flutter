@@ -1,7 +1,5 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:flame/components.dart';
-import 'package:flame/sprite.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:tichu/enums/phases.dart';
@@ -19,29 +17,29 @@ class Avatar extends PositionComponent with HasGameRef<TichuGame> {
 
   final PlayerRole role;
 
-  Map<String, Card> cards = new Map();
+  Map<String, Card> cards = {};
 
   Sprite? img;
-  final Rect avatarRect = Rect.fromLTWH(0, 0, 63, 96);
+  final Rect avatarRect = const Rect.fromLTWH(0, 0, 63, 96);
 
   late TextPainter tp;
   late TextStyle textStyle;
-  final Offset textOffset = Offset(-20.0, -2.0);
+  final Offset textOffset = const Offset(-20.0, -2.0);
   late Offset targetLocation;
 
   Avatar(this.role, Vector2 initialPosition) {
     position = initialPosition;
     tp = TextPainter(
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
 
-    textStyle = TextStyle(
-        color: Color(0xff000000),
-        fontSize: 18, // '18px Courier',
-        // fill: BLACK, //backgroundColor: WHITE,
-        //         fillStyle: { color: BLACK, alpha: 1 }
-      );
+    textStyle = const TextStyle(
+      color: Color(0xff000000),
+      fontSize: 18, // '18px Courier',
+      // fill: BLACK, //backgroundColor: WHITE,
+      //         fillStyle: { color: BLACK, alpha: 1 }
+    );
 
     /*
       grand_tichu_announced = context.add.image(x, y + 100,
@@ -66,94 +64,105 @@ class Avatar extends PositionComponent with HasGameRef<TichuGame> {
 
   @override
   Future<void> onLoad() async {
+    super.onLoad();
     await gameRef.images.load(GameUtils.CARD_BACKSIDE);
-    if (img == null) {
-      img = Sprite(gameRef.images.fromCache(GameUtils.CARD_BACKSIDE));
-    }
+    img ??= Sprite(gameRef.images.fromCache(GameUtils.CARD_BACKSIDE));
   }
 
   void setPlayer(TichuGame game, PlayerModel player) {
     this.player = player;
-    // print("Setting Player ${this.player!.name}");
+    // print("Setting Player ${player!.name}");
     setPlayerImage(game);
     addCards(game);
 
-    if (this.role == PlayerRole.ACTIVE && game.gamePhase == Phase.GAME_STATE_5_PLAY) {
+    if (role == PlayerRole.ACTIVE &&
+        game.gamePhase == Phase.GAME_STATE_5_PLAY) {
       // (de-)activate play / pass buttons
-      game.cardsToBePlayedArea?.setButtonsActive(player.personalGameStatus == PlayerStatus.ACTIVE);
+      game.cardsToBePlayedArea?.setButtonsActive(
+          player.personalGameStatus == PlayerStatus.ACTIVE);
     }
   }
 
   void addCards(TichuGame game) {
-    if (// this.player!.personalGameStatus != PlayerStatus.DONE &&
-        this.role == PlayerRole.ACTIVE) {
-
+    if ( // player!.personalGameStatus != PlayerStatus.DONE &&
+    role == PlayerRole.ACTIVE) {
       player!.cards.sort((a, b) => a.rank.compareTo(b.rank));
-      Map<String, Card> updateCards = new Map();
+      Map<String, Card> updateCards = {};
 
       double x = position.x + 120;
-      player!.cards.forEach((card) {
-        x = max(x, min(game.size.x, (cards[card.name]?.position.x ?? 0) + 0.5 * GameUtils.CARD_WIDTH));
+      for (var card in player!.cards) {
+        x = max(x, min(game.size.x,
+            (cards[card.name]?.position.x ?? 0) + 0.5 * GameUtils.CARD_WIDTH));
         if (player!.phase == Phase.GAME_STATE_5_PLAY) {
           card.isVisible = true;
         }
-      });
+      }
 
-      player!.cards.forEach((card) {
-        if (card.isVisible) {
-          Card c;
-          if (cards.containsKey(card.name)) {
-            c = cards[card.name]!;
+      for (var cardModel in player!.cards) {
+        if (cardModel.isVisible) {
+          Card card;
+          if (cards.containsKey(cardModel.name)) {
+            card = cards[cardModel.name]!;
           } else {
-            if (card.x < 0) {
-              card.x = x;
-              card.y = position.y;
+            if (cardModel.x == null || cardModel.x! < 0) {
+              cardModel.x = x;
+              cardModel.y = position.y;
               x += 0.5 * GameUtils.CARD_WIDTH;
             }
-            c = new Card(card);
-            game.add(c);
-            game.changePriority(c, 10);
+            card = Card(cardModel);
+            card.setOwner("avatar");
+            card.changePriorityWithoutResorting(10 + min(0, cardModel.rank));
+            print("Avatar: adding card " + card.cardModel.name);
+            gameRef.add(card);
+            // was game.changePriority(c, 10);
           }
-          updateCards[card.name] = c;
+          updateCards[cardModel.name] = card;
+        }
+      }
+
+      cards.forEach((name, card) {
+        if (!updateCards.containsKey(name)) {
+          print("Avatar: removing card " + card.cardModel.name);
+          card.setOwner("avatar-del");
+          gameRef.remove(card);
         }
       });
-      cards.forEach((name, card) {
-        if(!updateCards.containsKey(name)) {
-          card.remove();
-        }});
+
       cards = updateCards;
     }
   }
 
   void setPlayerImage(TichuGame game) async {
-    // print("trying to set Player ${this.player!.name}");
+    // print("trying to set Player ${player!.name}");
     final String imageName = 'avatars/' + player!.name.toLowerCase() + '.png';
 
     try {
       await game.images.load(imageName);
       img = Sprite(game.images.fromCache(imageName));
-    } catch(_) {
+    } catch (_) {
       int chr = 0;
       for (var i = 0; i < player!.name.length; i++) {
-        player!.name.characters.forEach((s) {chr += s.hashCode;});
+        player!.name.characters.forEach((s) {
+          chr += s.hashCode;
+        });
       }
       int id = chr % 8 + 1;
       final String imageName = 'avatars/player_$id.png';
       await game.images.load(imageName);
       img = Sprite(game.images.fromCache(imageName));
     }
-    // print("Player ${this.player!.name} set");
+    // print("Player ${player!.name} set");
   }
 
   @override
-  void render(Canvas c) {
-    super.render(c);
+  void render(Canvas canvas) {
+    super.render(canvas);
 
     // drawing order: -5;
-    img?.renderRect(c, avatarRect);
+    img?.renderRect(canvas, avatarRect);
 
     //       text.depth = 1;
-    tp.paint(c, textOffset);
+    tp.paint(canvas, textOffset);
   }
 
   void onTapDown() {
@@ -181,16 +190,17 @@ class Avatar extends PositionComponent with HasGameRef<TichuGame> {
       PlayerRole.PARTNER: Avatar(
           PlayerRole.PARTNER, Vector2(width / 2.0, 20.0)),
       PlayerRole.BEFORE: Avatar(
-           PlayerRole.BEFORE, Vector2(0, 0.4 * height)),
-      PlayerRole.AFTER: Avatar(PlayerRole.AFTER, Vector2(width - 115.0, 0.4 * height))
+          PlayerRole.BEFORE, Vector2(0, 0.4 * height)),
+      PlayerRole.AFTER: Avatar(
+          PlayerRole.AFTER, Vector2(width - 115.0, 0.4 * height))
     };
 
     return avatars;
   }
 
   @override
-  void update(double t) {
-    super.update(t);
+  void update(double dt) {
+    super.update(dt);
 
     int numVisibleCards = player?.numVisibleCards() ?? 0;
     String infoText;
@@ -296,33 +306,34 @@ class Avatar extends PositionComponent with HasGameRef<TichuGame> {
   }
 
 
-
   @override
-  void onGameResize(Vector2 size) {
-    super.onGameResize(size);
+  void onGameResize(Vector2 gameSize) {
+    super.onGameResize(gameSize);
     switch (role) {
       case PlayerRole.ACTIVE:
-        this.position.y = size.y - avatarRect.height;
+        position.y = gameSize.y - avatarRect.height;
         break;
       case PlayerRole.PARTNER:
-        this.position.x = size.x / 2.0;
+        position.x = gameSize.x / 2.0;
         break;
       case PlayerRole.BEFORE:
-        this.position.y = 0.4 * size.y;
+        position.y = 0.4 * gameSize.y;
         break;
       case PlayerRole.AFTER:
-        this.position.x = size.x - avatarRect.width;
-        this.position.y = 0.4 * size.y;
+        position.x = gameSize.x - avatarRect.width;
+        position.y = 0.4 * gameSize.y;
         break;
     }
   }
 
   void reset() {
-    cards.forEach((_, card) {card.remove();});
+    cards.forEach((_, card) {
+      gameRef.remove(card);
+    });
     cards.clear();
   }
 
-  /*
+/*
   void make_blink(txt) {
     const make_blink = txt.getData('active');
     if (make_blink) {
@@ -342,7 +353,7 @@ class Avatar extends PositionComponent with HasGameRef<TichuGame> {
   }
 */
 
-  /*
+/*
   void create_text_background(context, role, text_x_pos, text_y_pos, target, color) {
     // console.log("showing color " + color + "for " + target.name + " at " + text_x_pos + "/ " + text_y_pos)
     let w, h;

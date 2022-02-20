@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flame/gestures.dart';
+import 'package:flame/input.dart';
 import 'package:flutter/material.dart' hide Image, Card;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,8 +10,8 @@ import 'package:flutter/widgets.dart' hide Image;
 import 'package:tuple/tuple.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'package:tichu/views/cards-to-be-played-area.dart';
-import 'package:tichu/views/schupfen-view.dart';
+import 'package:tichu/views/cards_to_be_played_area.dart';
+import 'package:tichu/views/schupfen_view.dart';
 import 'package:tichu/components/buttons/announce-tichu-button.dart';
 import 'package:tichu/components/background.dart';
 import 'package:tichu/enums/announced.dart';
@@ -28,7 +28,7 @@ import 'package:tichu/views/help-view.dart';
 import 'package:tichu/views/credits-view.dart';
 import 'package:tichu/components/score-display.dart';
 import 'package:tichu/components/avatar.dart';
-import 'package:tichu/components/table-view.dart';
+import 'package:tichu/components/table_view.dart';
 import 'package:tichu/components/card.dart';
 import 'package:tichu/components/buttons/music-button.dart';
 import 'package:tichu/components/buttons/remaining-cards-button.dart';
@@ -39,7 +39,7 @@ import 'package:tichu/game-utils.dart';
 
 import 'controllers/tichu-rules.dart';
 
-class TichuGame extends BaseGame with HasTappableComponents, HasDraggableComponents {
+class TichuGame extends FlameGame with HasTappables, HasDraggables {
 
   late Size screenSize;
   late double tileSize;
@@ -70,44 +70,47 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
   late AudioPlayer homeBGM;
   late AudioPlayer playingBGM;
   late SharedPreferences prefs;
-  final Map<PlayerRole, Avatar> avatars = Map();
-  final Map<String, Sprite> spriteMap = new Map();
+  final Map<PlayerRole, Avatar> avatars = {};
+  final Map<String, Sprite> spriteMap = {};
 
   final WebSocketChannel socket;
 
   Phase _gamePhase = Phase.GAME_STATE_REGISTER;
 
-  final TichuRules tichuRules = new TichuRules();
+  final TichuRules tichuRules = TichuRules();
 
   TichuGame(this.socket);
 
   addAvatar(PlayerRole role, Avatar avatar) {
-    this.avatars.putIfAbsent(role, () => avatar);
+    avatars.putIfAbsent(role, () => avatar);
   }
 
   Phase get gamePhase => _gamePhase;
 
   set gamePhase(Phase gamePhase) {
     if (_gamePhase != gamePhase) {
-      this._gamePhase = gamePhase;
+      _gamePhase = gamePhase;
       if (gamePhase != Phase.GAME_STATE_REGISTER) {
-        background.remove();
+        remove(background); // WAS background.remove();
       }
       if (gamePhase == Phase.GAME_STATE_2_GRAND_TICHU) {
         initGrandTichuPhaseButtons();
       }
       if (gamePhase == Phase.GAME_STATE_3_SCHUPFEN) {
-        if (this.avatars[PlayerRole.ACTIVE]?.player?.announced ==
+        if (avatars[PlayerRole.ACTIVE]?.player?.announced ==
             Announced.NOTHING) {
-          tichuButton = AnnounceButton(false, Vector2(150, 150), Vector2(305, 155), Vector2(150, 75));
-          this.tichuButton!.position = Vector2(0, size.y - tichuButton!.height);
-          this.add(tichuButton!);
+          tichuButton = AnnounceButton(
+              false, Vector2(150, 150), Vector2(305, 155), Vector2(150, 75));
+          tichuButton!.position = Vector2(0, size.y - tichuButton!.height);
+          add(tichuButton!);
         }
         schupfenView = SchupfenView();
-        this.add(schupfenView!);
+        add(schupfenView!);
       }
       if (gamePhase == Phase.GAME_STATE_5_PLAY) {
-        schupfenView?.remove();
+        if (schupfenView != null) {
+          remove(schupfenView!);
+        }
         cardsToBePlayedArea = CardsToBePlayedArea();
         add(cardsToBePlayedArea!);
         tableView = TableView();
@@ -118,6 +121,7 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
 
   @override
   Future<void> onLoad() async {
+    super.onLoad();
     prefs = await SharedPreferences.getInstance();
 
     await images.load('buttons.png');
@@ -125,12 +129,14 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
 
     await Flame.device.setLandscape();
 
-    this.changePriority(background, -99);
+    background.changePriorityWithoutResorting(-99);
+    // WAS this.changePriority(background, -99);
 
     scoreDisplay = ScoreDisplay(this);
 
-    this.avatars.forEach((_, avatar) {
-      this.changePriority(avatar, 1);
+    avatars.forEach((_, avatar) {
+      avatar.changePriorityWithoutResorting(1);
+      // WAS this.changePriority(avatar, 1);
     });
 
     loadCards();
@@ -169,21 +175,16 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
   Color backgroundColor() => GameUtils.BACKGROUND_COLOR;
 
   @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-  }
-
-  @override
-  void onResize(Vector2 size) {
-    bool isResized = this.hasLayout && size != this.size;
-    super.onResize(size);
+  void onGameResize(Vector2 canvasSize) {
+    bool isResized = hasLayout && canvasSize != size;
+    super.onGameResize(canvasSize);
     if (isResized) {
-      forceResize(size);
+      forceResize(canvasSize);
     }
 
-    this.remainingCardsButton?.position = Vector2(0.5 * size.x, size.y - 220);
-    this.grandTichuButton?.position = Vector2(0, size.y - grandTichuButton!.height);
-    this.tichuButton?.position = Vector2(0, size.y - tichuButton!.height);
+    remainingCardsButton?.position = Vector2(0.5 * canvasSize.x, canvasSize.y - 220);
+    grandTichuButton?.position = Vector2(0, canvasSize.y - grandTichuButton!.height);
+    tichuButton?.position = Vector2(0, canvasSize.y - tichuButton!.height);
     //  this.addButton({ name: 'button_bombe.png', x: SCREEN_WIDTH - 150, y: SCREEN_HEIGHT - 150 });
     //  this.addButton({ name: 'button_nein.png', x: SCREEN_WIDTH / 2 + 150, y: SCREEN_HEIGHT / 2 });
     //  this.addButton({ name: 'button_ja.png', x: SCREEN_WIDTH / 2 - 150, y: SCREEN_HEIGHT / 2 });
@@ -197,11 +198,11 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
   }
 
   @override
-  void update(double t) {
-    super.update(t);
-    if (this._gamePhase != Phase.GAME_STATE_NEW &&
+  void update(double dt) {
+    super.update(dt);
+    if (_gamePhase != Phase.GAME_STATE_NEW &&
         _gamePhase != Phase.GAME_STATE_REGISTER) {
-      scoreDisplay?.update(t);
+      scoreDisplay?.update(dt);
     }
 
   }
@@ -294,7 +295,7 @@ class TichuGame extends BaseGame with HasTappableComponents, HasDraggableCompone
       return cardsToBePlayedArea!.determineCardStateFromPosition(
           card, currentCardState);
     }
-    return Tuple2(currentCardState, new Offset(0, 0));
+    return Tuple2(currentCardState, const Offset(0, 0));
   }
 
 
@@ -324,19 +325,19 @@ saveValue(String key, int value) {
       tichuButton!.size = tichuButton!.size / 3;
       tichuButton!.position = Vector2((
           avatars[PlayerRole.ACTIVE]?.x ?? 0 ) + 5,
-          this.size.y - tichuButton!.size.y);
+          size.y - tichuButton!.size.y);
     } else if (announcement == Announced.GRAND_TICHU) {
       // resize and move button
       grandTichuButton!.isActivated = false;
       grandTichuButton!.size = grandTichuButton!.size / 3;
       grandTichuButton!.position = Vector2((
           avatars[PlayerRole.ACTIVE]?.x ?? 0 ) + 5,
-          this.size.y - grandTichuButton!.size.y);
-      remainingCardsButton!.remove();
+          size.y - grandTichuButton!.size.y);
+      remove(remainingCardsButton!);
     } else {
-      tichuButton?.remove();
-      grandTichuButton?.remove();
-      remainingCardsButton?.remove();
+      if (tichuButton != null) remove(tichuButton!);
+      if (grandTichuButton != null) remove(grandTichuButton!);
+      if (remainingCardsButton != null) remove(remainingCardsButton!);
     }
     sendMessage(socket, Commands.ANNOUNCE, {'value': announcement.toString()});
   }
@@ -361,8 +362,7 @@ saveValue(String key, int value) {
         srcSize: Vector2(GameUtils.CARD_WIDTH, GameUtils.CARD_HEIGHT));
 
     // four cards in a row
-    COLORS.forEach((color) =>
-    {
+    COLORS.forEach((color) => {
       NormalCardRanks.forEach((ix, rank) =>
       {
         if (color == "BLACK" && rank == "King") {
@@ -383,11 +383,14 @@ saveValue(String key, int value) {
     });
   }
 
+  /*
   @override
-  bool onDragEnd(int pointerId, DragEndInfo info) {
-    super.onDragEnd(pointerId, info);
-    return false;
+  void onPanUpdate(DragUpdateDetails details) {
+  // bool onDragEnd(int pointerId, DragEndInfo info) {
+    super.onPanUpdate(details);
+    // return false;
   }
+*/
 
   void cardsSchupfen() {
 
@@ -413,17 +416,16 @@ saveValue(String key, int value) {
       }
     ]
     });
-    schupfenView?.remove();
+    if (schupfenView != null) {
+      remove(schupfenView!);
+    }
   }
 
   void cardsPlay() {
 
     if (cardsToBePlayedArea != null) {
-      List<String> cardNames = cardsToBePlayedArea!.cardsInPlayArea.keys
-          .toList();
-
+      List<String> cardNames = cardsToBePlayedArea!.getAndClearCards();
       sendMessage(socket, Commands.TURN_FINISHED, {'cards': cardNames});
-      cardsToBePlayedArea!.cardsInPlayArea.clear();
     }
   }
 
@@ -436,14 +438,30 @@ saveValue(String key, int value) {
 
     _gamePhase = Phase.GAME_STATE_NEW;
     tichuRules.setCurrentHighestPlay([]);
-    schupfenView?.remove();
-    cardsToBePlayedArea?.remove();
-    tableView?.reset();
-    tableView?.remove();
-    grandTichuButton?.remove();
-    tichuButton?.remove();
-    remainingCardsButton?.remove();
+    if (grandTichuButton != null) {
+      remove(grandTichuButton!);
+    }
+    if (tichuButton != null) {
+      remove(tichuButton!);
+    }
+    if (remainingCardsButton != null) {
+      remove(remainingCardsButton!);
+    }
+    if (schupfenView != null) {
+      remove(schupfenView!);
+    }
+    if (cardsToBePlayedArea != null) {
+      remove(cardsToBePlayedArea!);
+    }
+
+    // do not remove avatars, only reset
     avatars.forEach((_, avatar) { avatar.reset();});
+
+    if (tableView != null) {
+      tableView!.reset();
+      remove(tableView!);
+    }
+
     sendMessage(socket, Commands.DEAL, {});
 
     //this.remove();

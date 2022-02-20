@@ -52,7 +52,7 @@ class _TichuTableState extends State<TichuTable> {
           break;
 
         case Commands.DEAL:
-          this._avatars.forEach((_, avatar) { avatar.reset();});
+          _avatars.forEach((_, avatar) { avatar.reset();});
           break;
 
         case Commands.PLAYER_UPDATE:
@@ -62,21 +62,21 @@ class _TichuTableState extends State<TichuTable> {
           PlayerRole role = determineRole(token, serverPlayer, player);
           print("received update for player '${serverPlayer.name}' with role $role and status '${serverPlayer.personalGameStatus}'");
           if (role == PlayerRole.ACTIVE) {
-            this._game.gamePhase = serverPlayer.phase;
+            _game.gamePhase = serverPlayer.phase;
           }
-          this._avatars[role]!.setPlayer(this._game, serverPlayer);
+          _avatars[role]!.setPlayer(_game, serverPlayer);
           break;
 
         case Commands.UPDATE_GAME_STATE:
-          TableModel tableModel = TableModel.fromJson(data as Map<String, dynamic>);
-          print("received update for table with cards '${tableModel.cards}' ");
-          if (tableModel.cards.length > 0) {
+          TableModel tableModel = TableModel.fromJson(data);
+          print("received update for table with '${tableModel.cards.length}' cards");
+          if (tableModel.cards.isNotEmpty) {
             _game.tichuRules.setCurrentHighestPlay(
                 tableModel.cards[tableModel.cards.length - 1]);
           } else {
             _game.tichuRules.setCurrentHighestPlay([]);
           }
-          _game.tableView?.addCards(_game, tableModel);
+          _game.tableView?.addCards(tableModel);
           break;
 
         default:
@@ -85,10 +85,10 @@ class _TichuTableState extends State<TichuTable> {
       }
     });
 
-    _game = TichuGame(this._channel);
+    _game = TichuGame(_channel);
 
-    this._avatars = Avatar.createAvatars(100, 100);
-    this._avatars.forEach((role, avatar) {this._game.addAvatar(role, avatar);});
+    _avatars = Avatar.createAvatars(100, 100);
+    _avatars.forEach((role, avatar) {_game.addAvatar(role, avatar);});
 
     sendMessage(_channel, Commands.REGISTER_PLAYER, player);
   }
@@ -108,7 +108,7 @@ class _TichuTableState extends State<TichuTable> {
       role = determineRole(token, serverPlayer, player);
       print("player '${serverPlayer.name}' joined the game with role $role");
     }
-    this._avatars[role]!.setPlayer(this._game, serverPlayer);
+    _avatars[role]!.setPlayer(_game, serverPlayer);
   }
 
   @override

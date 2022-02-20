@@ -2,24 +2,21 @@
 // JsonSerializableGenerator
 // **************************************************************************
 
-PlayerModel _$PlayerModelFromJson(Map<String, dynamic> json) {
-  return PlayerModel()
-    ..team = json['team'] as String
-    ..name = json['name'] as String
-    ..seat = json['seat'] as int
-    ..connected = json['connected'] as bool
-    ..announced = _$enumDecode(_$AnnouncedEnumMap, json['announced'])
-    ..tricks =
-        (json['tricks'] as List<dynamic>).map((e) => e as String).toList()
-    ..phase = _$enumDecode(_$PhaseEnumMap, json['phase'])
-    ..personalGameStatus =
-        _$enumDecode(_$PlayerStatusEnumMap, json['personal_game_status'])
-    ..hasPassed = json['has_passed'] as bool
-    ..rank = json['rank'] as int
-    ..cards = (json['cards'] as List<dynamic>)
-        .map((e) => CardModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-}
+PlayerModel _$PlayerModelFromJson(Map<String, dynamic> json) => PlayerModel()
+  ..team = json['team'] as String
+  ..name = json['name'] as String
+  ..seat = json['seat'] as int
+  ..connected = json['connected'] as bool
+  ..announced = $enumDecode(_$AnnouncedEnumMap, json['announced'])
+  ..tricks = (json['tricks'] as List<dynamic>).map((e) => e as String).toList()
+  ..phase = $enumDecode(_$PhaseEnumMap, json['phase'])
+  ..personalGameStatus =
+      $enumDecode(_$PlayerStatusEnumMap, json['personal_game_status'])
+  ..hasPassed = json['has_passed'] as bool
+  ..rank = json['rank'] as int
+  ..cards = (json['cards'] as List<dynamic>)
+      .map((e) => CardModel.fromJson(e as Map<String, dynamic>))
+      .toList();
 
 Map<String, dynamic> _$PlayerModelToJson(PlayerModel instance) =>
     <String, dynamic>{
@@ -36,32 +33,6 @@ Map<String, dynamic> _$PlayerModelToJson(PlayerModel instance) =>
       'rank': instance.rank,
       'cards': instance.cards,
     };
-
-K _$enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
 
 const _$AnnouncedEnumMap = {
   Announced.NOTHING: 'nothing',

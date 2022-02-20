@@ -6,13 +6,12 @@ part of 'register-player-model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RegisterPlayerModel _$RegisterPlayerModelFromJson(Map<String, dynamic> json) {
-  return RegisterPlayerModel()
-    ..team = json['team'] as String
-    ..name = json['name'] as String
-    ..seat = json['seat'] as int
-    ..serverIp = json['serverIp'] as String;
-}
+RegisterPlayerModel _$RegisterPlayerModelFromJson(Map<String, dynamic> json) =>
+    RegisterPlayerModel()
+      ..team = json['team'] as String
+      ..name = json['name'] as String
+      ..seat = json['seat'] as int
+      ..serverIp = json['serverIp'] as String;
 
 Map<String, dynamic> _$RegisterPlayerModelToJson(
         RegisterPlayerModel instance) =>

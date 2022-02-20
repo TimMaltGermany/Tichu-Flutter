@@ -3,7 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:tichu/tichu-game.dart';
 
-class HomeView extends BaseComponent {
+class HomeView extends Component {
   final TichuGame game;
   late Rect titleRect;
   late Sprite titleSprite;

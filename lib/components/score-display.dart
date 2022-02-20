@@ -3,7 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 import 'package:tichu/tichu-game.dart';
 
-class ScoreDisplay extends BaseComponent {
+class ScoreDisplay extends Component {
   final TichuGame game;
   late TextPainter painter;
   late TextStyle textStyle;

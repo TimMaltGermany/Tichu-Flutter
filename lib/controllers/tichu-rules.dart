@@ -1,10 +1,10 @@
 
 import 'dart:collection';
 import 'dart:math';
-import 'package:optional/optional_internal.dart';
+import 'package:optional/optional.dart';
 
 import 'package:tichu/enums/rank.dart';
-import 'package:tichu/models/card-model.dart';
+import 'package:tichu/models/card_model.dart';
 
 class TichuRules {
   
@@ -25,11 +25,11 @@ class TichuRules {
   }
 
   bool hasValue(int rank) {
-    return this.getValue(rank) != 0;
+    return getValue(rank) != 0;
   }
   
   bool hasValueForCard(CardModel card) {
-    return this.hasValue(card.rank);
+    return hasValue(card.rank);
   }
 
   int getValue(int rank) {
@@ -69,14 +69,14 @@ class TichuRules {
     if (cards.isEmpty) {
       return false;
     }
-    bool needToBeatExistingSet = this.globalHighestPlay.isNotEmpty;
+    bool needToBeatExistingSet = globalHighestPlay.isNotEmpty;
     if (isValidAnHigherBomb(cards)) {
       return true;
     }
 
-    Optional<int> optRank = this.getRankIfAllOfSameRank(cards, -1);
+    Optional<int> optRank = getRankIfAllOfSameRank(cards, -1);
     if (optRank.isPresent) {
-      if (needToBeatExistingSet && this.isValidSameAndHigherRank(
+      if (needToBeatExistingSet && isValidSameAndHigherRank(
           cards, optRank.value.toDouble(), globalHighestPlay)) {
         return true;
       } else {
@@ -84,10 +84,10 @@ class TichuRules {
       }
     }
 
-    optRank = this.getHighestRankIfStraight(cards, allowPhoenix: true);
+    optRank = getHighestRankIfStraight(cards, allowPhoenix: true);
     if (optRank.isPresent) {
       if (needToBeatExistingSet) {
-        Optional<int> existingRank = this.getHighestRankIfStraight(
+        Optional<int> existingRank = getHighestRankIfStraight(
             globalHighestPlay, allowPhoenix: true);
         return existingRank.isPresent && existingRank.value < optRank.value;
       } else {
@@ -95,10 +95,10 @@ class TichuRules {
       }
     }
 
-    optRank = this.getHighestRankIfFullHouse(cards);
+    optRank = getHighestRankIfFullHouse(cards);
     if (optRank.isPresent) {
       if (needToBeatExistingSet) {
-        Optional<int> existingRank = this.getHighestRankIfFullHouse(
+        Optional<int> existingRank = getHighestRankIfFullHouse(
             globalHighestPlay);
         return existingRank.isPresent && existingRank.value < optRank.value;
       } else {
@@ -106,10 +106,10 @@ class TichuRules {
       }
     }
 
-    optRank = this.getHighestRankIfSequenceOfPairs(cards);
+    optRank = getHighestRankIfSequenceOfPairs(cards);
     if (optRank.isPresent) {
       if (needToBeatExistingSet) {
-        Optional<int> existingRank = this.getHighestRankIfSequenceOfPairs(
+        Optional<int> existingRank = getHighestRankIfSequenceOfPairs(
             globalHighestPlay);
         return existingRank.isPresent && existingRank.value < optRank.value;
       } else {
@@ -131,7 +131,7 @@ class TichuRules {
         return false;
       }
       if (needToBeat.isNotEmpty) {
-        Optional<int> currentRank = this.getRankIfAllOfSameRank(needToBeat, cards.length);
+        Optional<int> currentRank = getRankIfAllOfSameRank(needToBeat, cards.length);
         if (currentRank.isEmpty) {
           return false;
         }
@@ -145,17 +145,17 @@ class TichuRules {
   /// a full house consists of a pair and a triplet, possibly with a Phoenix
   Optional<int> getHighestRankIfFullHouse(List<CardModel> cards) {
     if (cards.length != 5) {
-      return Optional.empty();
+      return const Optional.empty();
     }
 
-    Map<int, int> ranks = new Map();
+    Map<int, int> ranks = {};
     CardModel? phoenix;
     for (int ix = 0; ix < cards.length; ix++) {
       int rank = cards[ix].rank;
       if (rank == RANK_PHOENIX) {
         phoenix = cards[ix];
       } else if (rank == RANK_DRAKE) {
-        return Optional.empty();
+        return const Optional.empty();
       } else {
           ranks[rank] = (ranks[rank] ?? 0) + 1;
       }
@@ -187,7 +187,7 @@ class TichuRules {
       }
 
       if (!isValid) {
-        return Optional.empty();
+        return const Optional.empty();
       }
 
       if (!phoenixRequired) {
@@ -204,7 +204,7 @@ class TichuRules {
         }
       }
     }
-    return Optional.empty();
+    return const Optional.empty();
   }
 
   /// a bomb is either a quadruplet of identical cards or
@@ -214,35 +214,35 @@ class TichuRules {
   /// longer bombs are always higher than shorter ones,
   /// the rank is only relevant when they have the same length
   Optional<int> getHighestRankIfBomb(List<CardModel> cards) {
-    Optional<int> rankOpt = Optional.empty();
+    Optional<int> rankOpt = const Optional.empty();
     if (cards.length >= 4) {
       if (cards.length == 4) {
-        rankOpt = this.getRankIfAllOfSameRank(cards, -1);
+        rankOpt = getRankIfAllOfSameRank(cards, -1);
       } else {
-        rankOpt = this.getHighestRankIfStraight(cards, allowPhoenix: false);
+        rankOpt = getHighestRankIfStraight(cards, allowPhoenix: false);
         if (rankOpt.isPresent && !ofSameColor(cards)) {
-          rankOpt = Optional.empty();
+          rankOpt = const Optional.empty();
         }
       }
     }
     if (rankOpt.isPresent) {
       return (100 * cards.length + rankOpt.value).toOptional;
     } else {
-      return Optional.empty();
+      return const Optional.empty();
     }
   }
 
   bool isValidAnHigherBomb(List<CardModel> cards) {
-    Optional<int> rank = this.getHighestRankIfBomb(cards);
+    Optional<int> rank = getHighestRankIfBomb(cards);
     if (rank.isPresent) {
-      Optional<int> existingRank = this.getHighestRankIfBomb(globalHighestPlay);
+      Optional<int> existingRank = getHighestRankIfBomb(globalHighestPlay);
        return existingRank.isEmpty || existingRank.value < rank.value;
     }
     return false;
   }
 
   bool ofSameColor(List<CardModel> cards) {
-    String color = cards[0].color;
+    String? color = cards[0].color;
     for (int ix = 1; ix < cards.length; ix++) {
       if (cards[ix].color != color) {
         return false;
@@ -257,7 +257,7 @@ class TichuRules {
   Optional<int> getRankIfAllOfSameRank(List<CardModel> cards, numCards) {
     bool allowPhoenix = cards.length < 4;
     if (cards.length > 4 || (numCards > 0 && numCards != cards.length)) {
-      return Optional.empty();
+      return const Optional.empty();
     }
 
     int rank = cards[0].rank;
@@ -270,7 +270,7 @@ class TichuRules {
       if (cards.length == 1) {
         return Optional.of(RANK_MAHJONG);
       } else {
-        return Optional.empty();
+        return const Optional.empty();
       }
     }
 
@@ -282,13 +282,13 @@ class TichuRules {
       int r = cards[ix].rank;
       if (r == RANK_PHOENIX) {
         if (!allowPhoenix) {
-          return Optional.empty();
+          return const Optional.empty();
         }
       } else if (r == RANK_DRAKE || r == RANK_DOGS) {
-        return Optional.empty();
+        return const Optional.empty();
       }
       else if (r != rank) {
-        return Optional.empty();
+        return const Optional.empty();
       }
     }
     return Optional.of(rank);
@@ -298,17 +298,17 @@ class TichuRules {
   /// a single pair is not a sequence of pairs
   Optional<int> getHighestRankIfSequenceOfPairs(List<CardModel> cards) {
     if (cards.length < 4 || cards.length % 2 != 0) {
-      return Optional.empty();
+      return const Optional.empty();
     }
 
-    SplayTreeMap<int, int> ranks = new SplayTreeMap();
+    SplayTreeMap<int, int> ranks = SplayTreeMap();
     CardModel? phoenix;
     for (int ix = 0; ix < cards.length; ix++) {
       int rank = cards[ix].rank;
       if (rank == RANK_PHOENIX) {
         phoenix = cards[ix];
       } else if (rank == RANK_DRAKE) {
-        return Optional.empty();
+        return const Optional.empty();
       } else {
         ranks[rank] = (ranks[rank] ?? 0) + 1;
       }
@@ -321,43 +321,43 @@ class TichuRules {
       int ctr = entry.value;
       if (lastRank != null) {
         if (rank != lastRank + 1) {
-          return Optional.empty();
+          return const Optional.empty();
         }
       }
       lastRank = rank;
       if (ctr == 1) {
         if (phoenix == null) {
-          return Optional.empty();
+          return const Optional.empty();
         }
         phoenix = null;
       } else if (ctr != 2) {
-        return Optional.empty();
+        return const Optional.empty();
       }
     }
     if (lastRank != null) {
       return Optional.of(lastRank);
     } else {
-      return Optional.empty();
+      return const Optional.empty();
     }
   }
 
   Optional<int> getHighestRankIfStraight(List<CardModel> cards, {bool allowPhoenix = true}) {
     // straights in Tichu must be at least 5 long
     if (cards.length < 5) {
-      return Optional.empty();
+      return const Optional.empty();
     }
 
-    SplayTreeSet<int> ranks = new SplayTreeSet();
+    SplayTreeSet<int> ranks = SplayTreeSet();
     CardModel? phoenix;
     for (int ix = 0; ix < cards.length; ix++) {
       int rank = cards[ix].rank;
       if (rank == RANK_PHOENIX) {
         if (!allowPhoenix) {
-          return Optional.empty();
+          return const Optional.empty();
         }
         phoenix = cards[ix];
       } else if (rank == RANK_DRAKE) {
-        return Optional.empty();
+        return const Optional.empty();
       } else {
         ranks.add(rank);
       }
@@ -368,7 +368,7 @@ class TichuRules {
       l += 1;
     }
     if (l != cards.length) {
-      return Optional.empty();
+      return const Optional.empty();
     }
 
     int currentRank = ranks.first;
@@ -376,7 +376,7 @@ class TichuRules {
       if (ranks.elementAt(ix) != currentRank + 1) {
         // allow one leap if there is a phoenix
         if (phoenix == null || ranks.elementAt(ix) != currentRank + 2) {
-          return Optional.empty();
+          return const Optional.empty();
         }
         //phoenix is 'used up'
         phoenix = null;

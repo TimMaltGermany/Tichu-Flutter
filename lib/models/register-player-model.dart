@@ -46,7 +46,7 @@ class RegisterPlayerModel extends ChangeNotifier {
   String get serverIp => _serverIp;
 
   set serverIp(String? serverIp) {
-    if (serverIp != null && serverIp.length > 0) {
+    if (serverIp != null && serverIp.isNotEmpty) {
       _serverIp = serverIp;
       _saveStringValue('serverIp', serverIp);
       notifyListeners();

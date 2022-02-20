@@ -28,6 +28,7 @@ class Button extends PositionComponent with Tappable, HasGameRef<TichuGame> {
     await gameRef.images.load(imagePath);
     sprite = Sprite(gameRef.images.fromCache(imagePath),
         srcPosition: srcPosition, srcSize: srcSize);
+    super.onLoad();
   }
 
   @override
@@ -39,12 +40,12 @@ class Button extends PositionComponent with Tappable, HasGameRef<TichuGame> {
   }
 
   @override
-  bool onTapUp(_) {
+  bool onTapUp(info) {
     return true;
   }
 
   @override
-  bool onTapDown(_) {
+  bool onTapDown(info) {
     return true;
   }
 

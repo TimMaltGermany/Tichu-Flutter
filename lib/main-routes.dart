@@ -12,7 +12,7 @@ import 'package:tichu/screens/team_selection.dart';
 import 'package:tichu/screens/tichu_table.dart';
 import 'package:tichu/models/sign-up-model.dart';
 import 'package:tichu/widget/login_fresh_reset_password.dart';
-import 'package:tichu/screens/login-by-username-and-password.dart';
+import 'package:tichu/screens/login_by_username_and_password.dart';
 import 'package:tichu/widget/register_as_new_user.dart';
 
 import 'common/theme.dart';
@@ -20,10 +20,11 @@ import 'game-utils.dart';
 import 'models/register-player-model.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const TichuApp());
 }
 
-class MyApp extends StatelessWidget {
+class TichuApp extends StatelessWidget {
+  const TichuApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

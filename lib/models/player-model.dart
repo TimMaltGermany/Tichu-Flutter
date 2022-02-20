@@ -1,7 +1,7 @@
 
 import 'package:tichu/enums/player-status.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:tichu/models/card-model.dart';
+import 'package:tichu/models/card_model.dart';
 import 'package:tichu/enums/announced.dart';
 import 'package:tichu/enums/phases.dart';
 
