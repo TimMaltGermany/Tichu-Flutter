@@ -6,7 +6,16 @@ A new Flutter project.
 
 run node js server as follows:
 - cd ~/tarent/dev/tichu_server
-- node dist/server/session.js
+- tsc;node dist/server/session.js
+
+
+## TODOs
+- Tichu announcement not seen by others
+- "schupfed" cards may be outside of visible area
+- show DOGS
+- show who's turn it is
+- compute score
+- assign Drake-trick
 
 
 This project is a starting point for a Flutter application.

@@ -40,7 +40,7 @@ class _TichuTableState extends State<TichuTable> {
     );
 
     _channel.stream.forEach((element) {
-      Map<String, Object> data = jsonDecode(element);
+      Map<String, dynamic> data = jsonDecode(element);
       String cmd = data['cmd'] as String;
       switch(cmd) {
         case Commands.REGISTER_PLAYER:
@@ -93,7 +93,7 @@ class _TichuTableState extends State<TichuTable> {
     sendMessage(_channel, Commands.REGISTER_PLAYER, player);
   }
 
-  void handleRegisterPlayer(Map<String, Object> data, RegisterPlayerModel player) {
+  void handleRegisterPlayer(Map<String, dynamic> data, RegisterPlayerModel player) {
     String token = data['userID'] as String;
     PlayerModel serverPlayer = PlayerModel.fromJson(data['player'] as Map<String, dynamic>);
     PlayerRole role;

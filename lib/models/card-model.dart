@@ -13,10 +13,10 @@ class CardModel {
   int rank = 0;
   double x  = -10;
   double y = -10;
-  //TODO - needed?
+  // TODO - needed?
   @JsonKey(name: 'is_selected')
   bool isSelected = false;
-  //TODO - needed?
+  // TODO - needed?
   bool is_to_be_played = false;
   @JsonKey(name: '_state')
   CardState state = CardState.ON_HAND;

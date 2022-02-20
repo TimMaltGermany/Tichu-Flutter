@@ -395,15 +395,21 @@ saveValue(String key, int value) {
     sendMessage(socket, Commands.SCHUPFEN_FINISHED, {'cards': [
       {
         'seat': determineSeatFromRole(PlayerRole.BEFORE, seat),
-        'card': schupfenView?.playerBeforeCard!.cardModel.name
+        'card': schupfenView?.playerBeforeCard!.cardModel.name,
+        'x': schupfenView?.playerBeforeCard!.cardModel.x,
+        'y':schupfenView?.playerBeforeCard!.cardModel.y
       },
       {
         'seat': determineSeatFromRole(PlayerRole.AFTER, seat),
-        'card': schupfenView?.playerAfterCard!.cardModel.name
+        'card': schupfenView?.playerAfterCard!.cardModel.name,
+        'x': schupfenView?.playerAfterCard!.cardModel.x,
+        'y':schupfenView?.playerAfterCard!.cardModel.y
       },
       {
         'seat': determineSeatFromRole(PlayerRole.PARTNER, seat),
-        'card': schupfenView?.playerPartnerCard!.cardModel.name
+        'card': schupfenView?.playerPartnerCard!.cardModel.name,
+        'x': schupfenView?.playerPartnerCard!.cardModel.x,
+        'y':schupfenView?.playerPartnerCard!.cardModel.y
       }
     ]
     });
